@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVAC Heat Load Calculator - Indian Standards</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Urbanist:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #0A4D3C;
+            --primary-light: #0F6B52;
+            --accent: #FF6B35;
+            --accent-light: #FF8C61;
+            --bg: #F8F9FA;
+            --surface: #FFFFFF;
+            --text: #1A1A1A;
+            --text-secondary: #6B7280;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        body {
+            font-family: 'Urbanist', sans-serif;
+            background: linear-gradient(135deg, #E8F5F1 0%, #F8F9FA 50%, #FFF5F2 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        
+        .subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            animation: fadeInUp 0.6s ease-out;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .card-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .upload-zone {
+            border: 3px dashed var(--border);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(10, 77, 60, 0.02), rgba(255, 107, 53, 0.02));
+        }
+        
+        .upload-zone:hover {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(10, 77, 60, 0.05), rgba(255, 107, 53, 0.05));
+        }
+        
+        .upload-zone.dragging {
+            border-color: var(--accent);
+            background: rgba(255, 107, 53, 0.1);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Urbanist', sans-serif;
+            transition: all 0.3s ease;
+            background: var(--surface);
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(10, 77, 60, 0.1);
+        }
+        
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Urbanist', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            box-shadow: 0 4px 12px rgba(10, 77, 60, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(10, 77, 60, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+        }
+        
+        .results-panel {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .result-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+        
+        .result-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .result-unit {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
+        }
+        
+        .breakdown {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+        }
+        
+        .breakdown-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .extracted-data {
+            background: var(--bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+        }
+        
+        .data-chip {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(10, 77, 60, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .info-badge {
+            display: inline-block;
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .room-list {
+            margin-top: 1rem;
+        }
+        
+        .room-item {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .room-name {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .room-details {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .file-item {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+        
+        .file-status {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .file-remove {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .file-remove:hover {
+            background: #DC2626;
+            transform: scale(1.05);
+        }
+        
+        .overall-summary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+        
+        .floor-breakdown {
+            margin-top: 1.5rem;
+        }
+        
+        .floor-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid white;
+        }
+        
+        .floor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .floor-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .floor-tr {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+        
+        .floor-rooms {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+        
+        .toggle-details {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-details:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏗️ HVAC Heat Load Calculator</h1>
+            <p class="subtitle">Professional Grade Heat Load & Tonnage Estimation · Indian Standards (NBC 2016)</p>
+        </header>
+        
+        <div class="main-grid">
+            <!-- Input Section -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📄</div>
+                    <h2 class="card-title">Upload Architectural Drawing</h2>
+                </div>
+                
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">📁</div>
+                    <h3>Drop PDF floor plans here</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">or click to browse (supports multiple files)</p>
+                    <input type="file" id="fileInput" accept=".pdf" multiple />
+                </div>
+                
+                <div id="uploadedFiles" style="margin-top: 1.5rem; display: none;">
+                    <h3 style="margin-bottom: 1rem; color: var(--primary);">📑 Uploaded Files</h3>
+                    <div id="filesList"></div>
+                </div>
+                
+                <div id="extractedInfo" style="display: none; margin-top: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem; color: var(--primary);">📊 Extracted Data</h3>
+                    <div id="extractedRooms" class="room-list"></div>
+                </div>
+            </div>
+            
+            <!-- Manual Input Section -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">✏️</div>
+                    <h2 class="card-title">Manual Input / Verification</h2>
+                </div>
+                
+                <div id="manualInputs">
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label>Floor Number</label>
+                            <select id="floorNumber">
+                                <option value="ground">Ground Floor</option>
+                                <option value="first">First Floor</option>
+                                <option value="second">Second Floor</option>
+                                <option value="third">Third Floor</option>
+                                <option value="fourth">Fourth Floor</option>
+                                <option value="basement">Basement</option>
+                                <option value="terrace">Terrace/Penthouse</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Room Name</label>
+                            <input type="text" id="roomName" placeholder="e.g., Master Bedroom" />
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label>Length (feet)</label>
+                            <input type="number" id="roomLength" placeholder="20" step="0.1" />
+                        </div>
+                        <div class="form-group">
+                            <label>Width (feet)</label>
+                            <input type="number" id="roomWidth" placeholder="16" step="0.1" />
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label>Height (feet)</label>
+                            <input type="number" id="roomHeight" placeholder="11.5" step="0.1" value="11.5" />
+                        </div>
+                        <div class="form-group">
+                            <label>Occupants</label>
+                            <input type="number" id="occupants" placeholder="2" min="1" value="2" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Wall Type</label>
+                        <select id="wallType">
+                            <option value="exposed_brick">Exposed Brick Structure</option>
+                            <option value="insulated">50mm Insulated Wall</option>
+                            <option value="concrete">Concrete Wall</option>
+                            <option value="lightweight">Lightweight Wall</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Ceiling Type</label>
+                        <select id="ceilingType">
+                            <option value="flat_slab">Flat Slab (No Beams)</option>
+                            <option value="false_ceiling">False Ceiling with Insulation</option>
+                            <option value="rcc_exposed">RCC Exposed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Glass Type</label>
+                        <select id="glassType">
+                            <option value="double_height">Double Glass Height (Full)</option>
+                            <option value="standard">Standard Windows</option>
+                            <option value="low_e">Low-E Glass</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label>Window Area (sq.ft)</label>
+                            <input type="number" id="windowArea" placeholder="60" step="0.1" />
+                        </div>
+                        <div class="form-group">
+                            <label>Orientation</label>
+                            <select id="orientation">
+                                <option value="north">North</option>
+                                <option value="south">South</option>
+                                <option value="east">East</option>
+                                <option value="west">West</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Location/Climate Zone</label>
+                        <select id="location">
+                            <option value="hot_dry">Hot & Dry (Delhi, Rajasthan)</option>
+                            <option value="warm_humid">Warm & Humid (Mumbai, Chennai)</option>
+                            <option value="composite">Composite (Bangalore, Pune)</option>
+                            <option value="cold">Cold (Shimla, Kashmir)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label>Lighting Load (W/sq.ft)</label>
+                            <input type="number" id="lightingLoad" value="1.5" step="0.1" />
+                        </div>
+                        <div class="form-group">
+                            <label>Equipment Load (W/sq.ft)</label>
+                            <input type="number" id="equipmentLoad" value="2" step="0.1" />
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="calculateBtn" style="width: 100%; margin-top: 1rem;">
+                        🔥 Calculate Heat Load
+                    </button>
+                    
+                    <button class="btn btn-secondary" id="addRoomBtn" style="width: 100%; margin-top: 0.5rem;">
+                        ➕ Add Another Room
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div id="resultsSection" style="display: none;">
+            <div class="results-panel">
+                <h2 style="margin-bottom: 2rem; font-size: 2rem;">🎯 Heat Load Calculation Results</h2>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-label">Total Heat Load</div>
+                        <div class="result-value" id="totalHeatLoad">0</div>
+                        <div class="result-unit">BTU/hr</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">In Watts</div>
+                        <div class="result-value" id="totalWatts">0</div>
+                        <div class="result-unit">W</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">Required TR</div>
+                        <div class="result-value" id="requiredTR">0</div>
+                        <div class="result-unit">Tons</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">Recommended AC</div>
+                        <div class="result-value" id="recommendedTR">0</div>
+                        <div class="result-unit">TR Unit</div>
+                    </div>
+                </div>
+                
+                <div class="breakdown">
+                    <div class="breakdown-title">📋 Heat Load Breakdown</div>
+                    <div class="breakdown-item">
+                        <span>Sensible Heat (Walls & Roof)</span>
+                        <strong id="sensibleWalls">0 BTU/hr</strong>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Solar Heat Gain (Windows)</span>
+                        <strong id="solarGain">0 BTU/hr</strong>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Occupant Heat Load</span>
+                        <strong id="occupantLoad">0 BTU/hr</strong>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Lighting Load</span>
+                        <strong id="lightingHeat">0 BTU/hr</strong>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Equipment Load</span>
+                        <strong id="equipmentHeat">0 BTU/hr</strong>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Infiltration & Ventilation</span>
+                        <strong id="infiltration">0 BTU/hr</strong>
+                    </div>
+                </div>
+                
+                <div class="breakdown" style="margin-top: 1rem;">
+                    <div class="breakdown-title">🏠 Room Details</div>
+                    <div id="roomSummary"></div>
+                </div>
+                
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button class="btn btn-secondary" id="exportBtn">
+                        📥 Export Detailed Report
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Built with precision engineering · Compliant with NBC 2016 & ISHRAE standards</p>
+            <p style="margin-top: 0.5rem; opacity: 0.7;">This tool provides estimates for preliminary design. Final HVAC design should be verified by licensed MEP consultants.</p>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        // PDF.js 3.4.120 - tested working version
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        }
+    </script>
+    <script>
+        
+        // State management
+        let rooms = [];
+        let currentRoom = {};
+        let uploadedFiles = [];
+        let allExtractedData = {};
+        
+        // Upload zone functionality
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        
+        uploadZone.addEventListener('click', () => fileInput.click());
+        
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragging');
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragging');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragging');
+            const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+            if (files.length > 0) {
+                handleMultiplePDFUpload(files);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                handleMultiplePDFUpload(files);
+            }
+        });
+        
+        // Handle multiple PDF uploads
+        async function handleMultiplePDFUpload(files) {
+            const uploadedFilesDiv = document.getElementById('uploadedFiles');
+            const filesList = document.getElementById('filesList');
+            
+            uploadedFilesDiv.style.display = 'block';
+            
+            for (const file of files) {
+                const fileId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                // Add to uploaded files list
+                uploadedFiles.push({
+                    id: fileId,
+                    name: file.name,
+                    file: file
+                });
+                
+                // Create file item in UI
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.id = `file-${fileId}`;
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-name">📄 ${file.name}</div>
+                        <div class="file-status" id="status-${fileId}">Processing...</div>
+                    </div>
+                    <button class="file-remove" onclick="removeFile('${fileId}')">Remove</button>
+                `;
+                filesList.appendChild(fileItem);
+                
+                // Process PDF with pdfjsLib
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                    const pdf = await loadingTask.promise;
+                    
+                    let fullText = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        fullText += pageText + ' ';
+                    }
+                    
+                    const extractedData = parseFloorPlan(fullText);
+                    
+                    // Detect floor number from filename
+                    const detectedFloor = detectFloorFromFilename(file.name);
+                    extractedData.detectedFloor = detectedFloor;
+                    extractedData.fileName = file.name;
+                    
+                    allExtractedData[fileId] = extractedData;
+                    
+                    document.getElementById(`status-${fileId}`).innerHTML = `
+                        ✅ Extracted ${extractedData.rooms.length} room(s) | 
+                        Detected: <strong>${detectedFloor}</strong>
+                    `;
+                    
+                    // Display extracted rooms
+                    displayExtractedDataForFile(fileId, extractedData);
+                    
+                    // Auto-calculate for all extracted rooms if this is the last file
+                    setTimeout(() => {
+                        autoCalculateAllRooms();
+                    }, 500);
+                } catch (error) {
+                    console.error('Error processing PDF:', error);
+                    document.getElementById(`status-${fileId}`).innerHTML = `
+                        ⚠️ Error: ${error.message}
+                    `;
+                }
+            }
+            
+            updateUploadZoneStatus();
+        }
+        
+        function detectFloorFromFilename(filename) {
+            const lower = filename.toLowerCase();
+            
+            if (lower.includes('ground') || lower.includes('g.f') || lower.includes('gf') || lower.includes('_g_') || lower.includes('r00')) {
+                return 'Ground Floor';
+            } else if (lower.includes('first') || lower.includes('1st') || lower.includes('f.f') || lower.includes('ff') || lower.includes('_1_') || lower.includes('_01')) {
+                return 'First Floor';
+            } else if (lower.includes('second') || lower.includes('2nd') || lower.includes('_2_') || lower.includes('_02')) {
+                return 'Second Floor';
+            } else if (lower.includes('third') || lower.includes('3rd') || lower.includes('_3_') || lower.includes('_03')) {
+                return 'Third Floor';
+            } else if (lower.includes('fourth') || lower.includes('4th') || lower.includes('_4_')) {
+                return 'Fourth Floor';
+            } else if (lower.includes('basement') || lower.includes('b.f') || lower.includes('_b_')) {
+                return 'Basement';
+            } else if (lower.includes('terrace') || lower.includes('penthouse') || lower.includes('roof')) {
+                return 'Terrace/Penthouse';
+            }
+            
+            return 'Unknown Floor';
+        }
+        
+        function updateUploadZoneStatus() {
+            const totalFiles = uploadedFiles.length;
+            uploadZone.innerHTML = `
+                <div class="upload-icon">✅</div>
+                <h3>${totalFiles} file(s) uploaded</h3>
+                <p style="color: var(--success); margin-top: 0.5rem;">Click to add more files</p>
+            `;
+        }
+        
+        window.removeFile = function(fileId) {
+            // Remove from arrays
+            uploadedFiles = uploadedFiles.filter(f => f.id !== fileId);
+            delete allExtractedData[fileId];
+            
+            // Remove from DOM
+            document.getElementById(`file-${fileId}`).remove();
+            
+            // Update status
+            if (uploadedFiles.length === 0) {
+                document.getElementById('uploadedFiles').style.display = 'none';
+                uploadZone.innerHTML = `
+                    <div class="upload-icon">📁</div>
+                    <h3>Drop PDF floor plans here</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">or click to browse (supports multiple files)</p>
+                `;
+            } else {
+                updateUploadZoneStatus();
+            }
+        };
+        
+        function displayExtractedDataForFile(fileId, data) {
+            const extractedInfo = document.getElementById('extractedInfo');
+            extractedInfo.style.display = 'block';
+            
+            const extractedRooms = document.getElementById('extractedRooms');
+            
+            if (data.rooms.length > 0) {
+                const fileSection = document.createElement('div');
+                fileSection.id = `extracted-${fileId}`;
+                fileSection.innerHTML = `
+                    <div style="background: var(--primary); color: white; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center;">
+                        <span>${data.fileName} - ${data.detectedFloor}</span>
+                        <span style="background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.875rem;">${data.rooms.length} room(s)</span>
+                    </div>
+                    ${data.rooms.map((room, idx) => `
+                        <div class="room-item">
+                            <div class="room-name">${room.name}</div>
+                            <div class="room-details">
+                                ${room.length}' × ${room.width}' | Area: ${room.area.toFixed(1)} sq.ft
+                            </div>
+                        </div>
+                    `).join('')}
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 0.75rem; padding: 0.75rem;" onclick="autoCalculateAllRooms()">
+                        🔥 Calculate All Rooms from All Floors
+                    </button>
+                `;
+                extractedRooms.appendChild(fileSection);
+            }
+        }
+        
+        function parseFloorPlan(text) {
+            const rooms = [];
+            
+            // Pattern matching for room dimensions
+            const roomPatterns = [
+                /(?:Bedroom|Living Room|Kitchen|Dining|Office|Study|Hall)\s*(\d+(?:'|"|ft)?[\s\d"'x×]+)/gi,
+                /(\d+(?:'|")?\s*x\s*\d+(?:'|")?)/gi
+            ];
+            
+            // Extract TR values
+            const trPattern = /(\d+\.?\d*)\s*TR/gi;
+            const trMatches = [...text.matchAll(trPattern)];
+            
+            // Extract room names and dimensions
+            const bedroomMatch = text.match(/Bedroom\s*(\d+['"]?\s*\d*['"]?\s*x\s*\d+['"]?\s*\d*['"]?)/i);
+            const livingMatch = text.match(/Living\s*Room\s*(\d+['"]?\s*\d*['"]?\s*x\s*\d+['"]?\s*\d*['"]?)/i);
+            
+            if (bedroomMatch) {
+                const dims = parseDimensions(bedroomMatch[1]);
+                if (dims) {
+                    rooms.push({
+                        name: 'Bedroom',
+                        length: dims.length,
+                        width: dims.width,
+                        area: dims.length * dims.width
+                    });
+                }
+            }
+            
+            if (livingMatch) {
+                const dims = parseDimensions(livingMatch[1]);
+                if (dims) {
+                    rooms.push({
+                        name: 'Living Room',
+                        length: dims.length,
+                        width: dims.width,
+                        area: dims.length * dims.width
+                    });
+                }
+            }
+            
+            // Extract TR information
+            const extractedTR = trMatches.map(m => parseFloat(m[1]));
+            
+            return {
+                rooms: rooms,
+                trValues: extractedTR,
+                rawText: text
+            };
+        }
+        
+        function parseDimensions(dimStr) {
+            // Parse dimensions like "16'0" x 20'0"" or "16 x 20"
+            const cleanDim = dimStr.replace(/['"]/g, ' ').replace(/\s+/g, ' ').trim();
+            const parts = cleanDim.split(/[x×]/i);
+            
+            if (parts.length >= 2) {
+                const length = parseFloat(parts[0].trim());
+                const width = parseFloat(parts[1].trim());
+                
+                if (!isNaN(length) && !isNaN(width)) {
+                    return { length, width };
+                }
+            }
+            
+            return null;
+        }
+        
+        function displayExtractedData(data) {
+            const extractedInfo = document.getElementById('extractedInfo');
+            const extractedRooms = document.getElementById('extractedRooms');
+            
+            if (data.rooms.length > 0) {
+                extractedInfo.style.display = 'block';
+                extractedRooms.innerHTML = data.rooms.map((room, idx) => `
+                    <div class="room-item">
+                        <div class="room-name">${room.name}</div>
+                        <div class="room-details">
+                            ${room.length}' × ${room.width}' | Area: ${room.area.toFixed(1)} sq.ft
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top: 0.5rem; padding: 0.5rem 1rem; font-size: 0.875rem;" onclick="useExtractedRoom(${idx})">
+                            Use This Data
+                        </button>
+                    </div>
+                `).join('');
+                
+                uploadZone.innerHTML = `
+                    <div class="upload-icon">✅</div>
+                    <h3>Floor plan analyzed successfully!</h3>
+                    <p style="color: var(--success); margin-top: 0.5rem;">Found ${data.rooms.length} room(s)</p>
+                `;
+                
+                // Store extracted data
+                window.extractedData = data;
+            } else {
+                uploadZone.innerHTML = `
+                    <div class="upload-icon">⚠️</div>
+                    <h3>Could not extract room data</h3>
+                    <p style="color: var(--warning); margin-top: 0.5rem;">Please enter details manually</p>
+                `;
+            }
+        }
+        
+        window.useExtractedRoom = function(fileId, idx, detectedFloor) {
+            const room = allExtractedData[fileId].rooms[idx];
+            document.getElementById('roomName').value = room.name;
+            document.getElementById('roomLength').value = room.length;
+            document.getElementById('roomWidth').value = room.width;
+            
+            // Set floor based on detected floor
+            const floorSelect = document.getElementById('floorNumber');
+            const floorMap = {
+                'Ground Floor': 'ground',
+                'First Floor': 'first',
+                'Second Floor': 'second',
+                'Third Floor': 'third',
+                'Fourth Floor': 'fourth',
+                'Basement': 'basement',
+                'Terrace/Penthouse': 'terrace'
+            };
+            floorSelect.value = floorMap[detectedFloor] || 'ground';
+            
+            // Scroll to manual input
+            document.getElementById('manualInputs').scrollIntoView({ behavior: 'smooth' });
+        };
+        
+        // Heat Load Calculation based on Indian Standards
+        document.getElementById('calculateBtn').addEventListener('click', calculateHeatLoad);
+        
+        function calculateHeatLoad() {
+            // Get inputs
+            const floorNumber = document.getElementById('floorNumber').value;
+            const roomName = document.getElementById('roomName').value || 'Room';
+            const length = parseFloat(document.getElementById('roomLength').value);
+            const width = parseFloat(document.getElementById('roomWidth').value);
+            const height = parseFloat(document.getElementById('roomHeight').value);
+            const occupants = parseInt(document.getElementById('occupants').value);
+            const wallType = document.getElementById('wallType').value;
+            const ceilingType = document.getElementById('ceilingType').value;
+            const glassType = document.getElementById('glassType').value;
+            const windowArea = parseFloat(document.getElementById('windowArea').value) || 0;
+            const orientation = document.getElementById('orientation').value;
+            const location = document.getElementById('location').value;
+            const lightingLoad = parseFloat(document.getElementById('lightingLoad').value);
+            const equipmentLoad = parseFloat(document.getElementById('equipmentLoad').value);
+            
+            if (!length || !width || !height) {
+                alert('Please enter room dimensions');
+                return;
+            }
+            
+            const area = length * width;
+            const volume = area * height;
+            
+            // U-values for different construction types (BTU/hr·ft²·°F)
+            const uValues = {
+                exposed_brick: 0.45,
+                insulated: 0.15,
+                concrete: 0.55,
+                lightweight: 0.35
+            };
+            
+            const ceilingUValues = {
+                flat_slab: 0.50,
+                false_ceiling: 0.20,
+                rcc_exposed: 0.60
+            };
+            
+            // SHGC (Solar Heat Gain Coefficient) values
+            const shgcValues = {
+                double_height: 0.75,
+                standard: 0.65,
+                low_e: 0.35
+            };
+            
+            // Temperature difference based on climate zone
+            const deltaT = {
+                hot_dry: 25,      // °F
+                warm_humid: 20,
+                composite: 18,
+                cold: 15
+            };
+            
+            // Solar heat gain factors by orientation (BTU/hr·ft²)
+            const solarFactors = {
+                north: 40,
+                south: 100,
+                east: 150,
+                west: 200
+            };
+            
+            const dt = deltaT[location];
+            const uWall = uValues[wallType];
+            const uCeiling = ceilingUValues[ceilingType];
+            const shgc = shgcValues[glassType];
+            
+            // Calculate wall area (assuming 4 walls)
+            const wallArea = 2 * (length + width) * height;
+            const netWallArea = wallArea - windowArea;
+            
+            // 1. Sensible heat through walls and ceiling
+            const sensibleWalls = netWallArea * uWall * dt;
+            const sensibleCeiling = area * uCeiling * dt;
+            const totalSensible = sensibleWalls + sensibleCeiling;
+            
+            // 2. Solar heat gain through windows
+            const solarGain = windowArea * solarFactors[orientation] * shgc;
+            
+            // 3. Occupant heat load (250 BTU/hr per person sensible + 200 latent for India)
+            const occupantLoad = occupants * 450;
+            
+            // 4. Lighting load (W/sq.ft converted to BTU/hr)
+            const lightingHeat = area * lightingLoad * 3.412;
+            
+            // 5. Equipment load
+            const equipmentHeat = area * equipmentLoad * 3.412;
+            
+            // 6. Infiltration and ventilation (0.5 ACH for well-sealed, 1.0 for average)
+            const ach = wallType === 'insulated' ? 0.5 : 1.0;
+            const cfm = (volume * ach) / 60;
+            const infiltration = cfm * 1.08 * dt; // Sensible
+            const latentInfiltration = cfm * 0.68 * 30; // Latent (assuming humid conditions)
+            const totalInfiltration = infiltration + latentInfiltration;
+            
+            // Total heat load
+            const totalHeatLoad = Math.round(totalSensible + solarGain + occupantLoad + 
+                                            lightingHeat + equipmentHeat + totalInfiltration);
+            
+            // Convert to watts
+            const totalWatts = Math.round(totalHeatLoad / 3.412);
+            
+            // Convert to TR (1 TR = 12,000 BTU/hr)
+            const requiredTR = (totalHeatLoad / 12000).toFixed(2);
+            
+            // Recommended TR (add 20% safety factor and round up to standard sizes)
+            const safetyTR = parseFloat(requiredTR) * 1.2;
+            const standardSizes = [0.75, 1, 1.5, 2, 2.5, 3, 4, 5];
+            const recommendedTR = standardSizes.find(size => size >= safetyTR) || Math.ceil(safetyTR);
+            
+            // Display results
+            displayResults({
+                floorNumber,
+                roomName,
+                area,
+                totalHeatLoad,
+                totalWatts,
+                requiredTR,
+                recommendedTR,
+                breakdown: {
+                    sensibleWalls: Math.round(totalSensible),
+                    solarGain: Math.round(solarGain),
+                    occupantLoad: Math.round(occupantLoad),
+                    lightingHeat: Math.round(lightingHeat),
+                    equipmentHeat: Math.round(equipmentHeat),
+                    infiltration: Math.round(totalInfiltration)
+                },
+                details: {
+                    length,
+                    width,
+                    height,
+                    occupants,
+                    wallType,
+                    ceilingType,
+                    glassType
+                }
+            });
+        }
+        
+        function displayResults(results) {
+            // Update result values
+            document.getElementById('totalHeatLoad').textContent = results.totalHeatLoad.toLocaleString();
+            document.getElementById('totalWatts').textContent = results.totalWatts.toLocaleString();
+            document.getElementById('requiredTR').textContent = results.requiredTR;
+            document.getElementById('recommendedTR').textContent = results.recommendedTR;
+            
+            // Update breakdown
+            document.getElementById('sensibleWalls').textContent = results.breakdown.sensibleWalls.toLocaleString() + ' BTU/hr';
+            document.getElementById('solarGain').textContent = results.breakdown.solarGain.toLocaleString() + ' BTU/hr';
+            document.getElementById('occupantLoad').textContent = results.breakdown.occupantLoad.toLocaleString() + ' BTU/hr';
+            document.getElementById('lightingHeat').textContent = results.breakdown.lightingHeat.toLocaleString() + ' BTU/hr';
+            document.getElementById('equipmentHeat').textContent = results.breakdown.equipmentHeat.toLocaleString() + ' BTU/hr';
+            document.getElementById('infiltration').textContent = results.breakdown.infiltration.toLocaleString() + ' BTU/hr';
+            
+            // Room summary
+            const floorNames = {
+                'ground': 'Ground Floor',
+                'first': 'First Floor',
+                'second': 'Second Floor',
+                'third': 'Third Floor',
+                'fourth': 'Fourth Floor',
+                'basement': 'Basement',
+                'terrace': 'Terrace/Penthouse'
+            };
+            
+            document.getElementById('roomSummary').innerHTML = `
+                <div class="breakdown-item">
+                    <span>Floor</span>
+                    <strong>${floorNames[results.floorNumber] || results.floorNumber}</strong>
+                </div>
+                <div class="breakdown-item">
+                    <span>Room</span>
+                    <strong>${results.roomName}</strong>
+                </div>
+                <div class="breakdown-item">
+                    <span>Dimensions</span>
+                    <strong>${results.details.length}' × ${results.details.width}' × ${results.details.height}'</strong>
+                </div>
+                <div class="breakdown-item">
+                    <span>Floor Area</span>
+                    <strong>${results.area.toFixed(1)} sq.ft</strong>
+                </div>
+                <div class="breakdown-item">
+                    <span>Occupants</span>
+                    <strong>${results.details.occupants}</strong>
+                </div>
+            `;
+            
+            // Show results section
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            
+            // Store for export
+            window.currentResults = results;
+            
+            // Update overall summary if there are multiple rooms
+            updateOverallSummary();
+        }
+        
+        function updateOverallSummary() {
+            if (rooms.length === 0) {
+                // Hide overall summary
+                const existing = document.getElementById('overallSummary');
+                if (existing) existing.remove();
+                return;
+            }
+            
+            // Group rooms by floor
+            const floorGroups = {};
+            rooms.forEach(room => {
+                const floor = room.floorNumber;
+                if (!floorGroups[floor]) {
+                    floorGroups[floor] = {
+                        rooms: [],
+                        totalTR: 0,
+                        totalHeatLoad: 0,
+                        totalArea: 0
+                    };
+                }
+                floorGroups[floor].rooms.push(room);
+                floorGroups[floor].totalTR += parseFloat(room.requiredTR);
+                floorGroups[floor].totalHeatLoad += room.totalHeatLoad;
+                floorGroups[floor].totalArea += room.area;
+            });
+            
+            // Calculate overall totals
+            const overallTotalTR = Object.values(floorGroups).reduce((sum, floor) => sum + floor.totalTR, 0);
+            const overallTotalHeatLoad = Object.values(floorGroups).reduce((sum, floor) => sum + floor.totalHeatLoad, 0);
+            const overallTotalArea = Object.values(floorGroups).reduce((sum, floor) => sum + floor.totalArea, 0);
+            
+            // Recommended overall TR with safety factor
+            const safetyTR = overallTotalTR * 1.2;
+            const standardSizes = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20];
+            const recommendedOverallTR = standardSizes.find(size => size >= safetyTR) || Math.ceil(safetyTR);
+            
+            const floorNames = {
+                'ground': 'Ground Floor',
+                'first': 'First Floor',
+                'second': 'Second Floor',
+                'third': 'Third Floor',
+                'fourth': 'Fourth Floor',
+                'basement': 'Basement',
+                'terrace': 'Terrace/Penthouse'
+            };
+            
+            // Create or update overall summary
+            let summaryDiv = document.getElementById('overallSummary');
+            if (!summaryDiv) {
+                summaryDiv = document.createElement('div');
+                summaryDiv.id = 'overallSummary';
+                summaryDiv.className = 'overall-summary';
+                document.getElementById('resultsSection').appendChild(summaryDiv);
+            }
+            
+            summaryDiv.innerHTML = `
+                <h2 style="margin-bottom: 2rem; font-size: 2rem;">🏢 Overall Building Summary</h2>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-label">Total Rooms</div>
+                        <div class="result-value">${rooms.length}</div>
+                        <div class="result-unit">Rooms</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">Total Area</div>
+                        <div class="result-value">${overallTotalArea.toFixed(0)}</div>
+                        <div class="result-unit">sq.ft</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">Total Heat Load</div>
+                        <div class="result-value">${Math.round(overallTotalHeatLoad).toLocaleString()}</div>
+                        <div class="result-unit">BTU/hr</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">Total Required TR</div>
+                        <div class="result-value">${overallTotalTR.toFixed(2)}</div>
+                        <div class="result-unit">Tons</div>
+                    </div>
+                </div>
+                
+                <div class="breakdown" style="margin-top: 1.5rem;">
+                    <div class="breakdown-title">📊 Recommended System Capacity</div>
+                    <div style="text-align: center; padding: 1.5rem 0;">
+                        <div style="font-size: 3rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
+                            ${recommendedOverallTR} TR
+                        </div>
+                        <div style="opacity: 0.9; margin-top: 0.5rem;">
+                            Total HVAC System Capacity (with 20% safety factor)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="floor-breakdown">
+                    <div class="breakdown-title">🏗️ Floor-wise Breakdown</div>
+                    ${Object.entries(floorGroups).map(([floor, data]) => {
+                        const floorRecommendedTR = standardSizes.find(size => size >= data.totalTR * 1.2) || Math.ceil(data.totalTR * 1.2);
+                        return `
+                            <div class="floor-item">
+                                <div class="floor-header">
+                                    <div class="floor-name">${floorNames[floor] || floor}</div>
+                                    <div class="floor-tr">${floorRecommendedTR} TR</div>
+                                </div>
+                                <div class="floor-rooms">
+                                    ${data.rooms.length} room(s) · ${data.totalArea.toFixed(0)} sq.ft · 
+                                    ${Math.round(data.totalHeatLoad).toLocaleString()} BTU/hr
+                                </div>
+                                <button class="toggle-details" onclick="toggleFloorDetails('${floor}')">
+                                    Show Room Details
+                                </button>
+                                <div id="floor-details-${floor}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.2);">
+                                    ${data.rooms.map(room => `
+                                        <div style="padding: 0.5rem 0; display: flex; justify-content: space-between; font-size: 0.9rem;">
+                                            <span>${room.roomName}</span>
+                                            <strong>${room.requiredTR} TR (${room.area.toFixed(0)} sq.ft)</strong>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button class="btn btn-secondary" onclick="exportOverallReport()">
+                        📥 Export Complete Building Report
+                    </button>
+                    <button class="btn btn-primary" onclick="clearAllRooms()" style="margin-left: 1rem;">
+                        🗑️ Clear All & Start Over
+                    </button>
+                </div>
+            `;
+            
+            summaryDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        window.toggleFloorDetails = function(floor) {
+            const details = document.getElementById(`floor-details-${floor}`);
+            const button = event.target;
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+                button.textContent = 'Hide Room Details';
+            } else {
+                details.style.display = 'none';
+                button.textContent = 'Show Room Details';
+            }
+        };
+        
+        window.clearAllRooms = function() {
+            if (confirm('Are you sure you want to clear all rooms and start over?')) {
+                rooms = [];
+                updateOverallSummary();
+                document.getElementById('resultsSection').style.display = 'none';
+            }
+        };
+        
+        // Auto-calculate all extracted rooms from PDFs
+        function autoCalculateAllRooms() {
+            if (Object.keys(allExtractedData).length === 0) return;
+            
+            let totalRoomsToCalculate = 0;
+            let calculatedRooms = 0;
+            
+            // Count total rooms
+            Object.values(allExtractedData).forEach(fileData => {
+                totalRoomsToCalculate += fileData.rooms.length;
+            });
+            
+            if (totalRoomsToCalculate === 0) return;
+            
+            // Clear existing rooms array
+            rooms = [];
+            
+            // Process each file's rooms
+            Object.entries(allExtractedData).forEach(([fileId, fileData]) => {
+                fileData.rooms.forEach((room, idx) => {
+                    // Intelligent occupant estimation based on room type and area
+                    let estimatedOccupants = 2;  // Default
+                    let equipmentWatts = 100;     // Default equipment watts (not W/sqft)
+                    
+                    const roomNameLower = room.name.toLowerCase();
+                    const roomArea = room.area;
+                    
+                    // Room-specific estimates matching professional methodology
+                    if (roomNameLower.includes('living') || roomNameLower.includes('drawing')) {
+                        estimatedOccupants = Math.max(10, Math.floor(roomArea / 60));  // ~10-13 for large living areas
+                        equipmentWatts = 200;
+                    } else if (roomNameLower.includes('dining')) {
+                        estimatedOccupants = Math.max(8, Math.floor(roomArea / 50));
+                        equipmentWatts = 200;
+                    } else if (roomNameLower.includes('master') || roomNameLower.includes('parent')) {
+                        estimatedOccupants = 2;
+                        equipmentWatts = 100;
+                    } else if (roomNameLower.includes('bedroom') || roomNameLower.includes('bed')) {
+                        estimatedOccupants = 2;
+                        equipmentWatts = 100;
+                    } else if (roomNameLower.includes('kitchen')) {
+                        estimatedOccupants = 4;
+                        equipmentWatts = 100;  // Kitchen equipment calculated separately
+                    } else if (roomNameLower.includes('theatre') || roomNameLower.includes('theater')) {
+                        estimatedOccupants = Math.max(10, Math.floor(roomArea / 50));
+                        equipmentWatts = 250;
+                    } else if (roomNameLower.includes('lounge')) {
+                        estimatedOccupants = 10;
+                        equipmentWatts = 250;
+                    } else if (roomNameLower.includes('gym')) {
+                        estimatedOccupants = 4;
+                        equipmentWatts = 100;
+                    } else if (roomNameLower.includes('dress')) {
+                        estimatedOccupants = 1;
+                        equipmentWatts = 50;
+                    } else if (roomNameLower.includes('guest')) {
+                        estimatedOccupants = 3;
+                        equipmentWatts = 100;
+                    }
+                    
+                    // Estimate window area more accurately
+                    // Professional data shows ~30-50% of wall area for living spaces
+                    let windowAreaRatio = 0.15;  // Base 15%
+                    if (roomNameLower.includes('living') || roomNameLower.includes('drawing')) {
+                        windowAreaRatio = 0.40;  // Large windows in living areas
+                    } else if (roomNameLower.includes('bedroom') || roomNameLower.includes('master')) {
+                        windowAreaRatio = 0.30;  // Good natural light
+                    }
+                    
+                    const estimatedWindowArea = Math.min(roomArea * windowAreaRatio, roomArea * 0.5);
+                    
+                    // Set default values for missing data
+                    const roomData = {
+                        floorNumber: detectFloorValue(fileData.detectedFloor),
+                        roomName: room.name,
+                        length: room.length,
+                        width: room.width,
+                        height: 14.5,  // Professional uses 14.5' for main floors, 12' for some bedrooms
+                        occupants: estimatedOccupants,
+                        wallType: 'exposed_brick',  // 6" brick (U=0.41)
+                        ceilingType: 'flat_slab',   // RCC slab (U=0.4)
+                        glassType: 'double_height', // Not used in new calc, kept for compatibility
+                        windowArea: estimatedWindowArea,
+                        orientation: 'south',       // Conservative assumption
+                        location: 'composite',      // Ahmedabad climate
+                        lightingLoad: 1.0,          // Professional uses 1 W/sqft
+                        equipmentLoad: equipmentWatts / roomArea,  // Convert to W/sqft for formula
+                        area: room.area
+                    };
+                    
+                    // Calculate heat load for this room
+                    const result = calculateHeatLoadForRoom(roomData);
+                    rooms.push(result);
+                    calculatedRooms++;
+                });
+            });
+            
+            // Show overall summary
+            if (rooms.length > 0) {
+                document.getElementById('resultsSection').style.display = 'block';
+                updateOverallSummary();
+                
+                // Show success message
+                const statusMsg = document.createElement('div');
+                statusMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10B981; color: white; padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10000; animation: fadeInUp 0.3s ease;';
+                statusMsg.innerHTML = `✅ Calculated ${calculatedRooms} rooms from ${Object.keys(allExtractedData).length} floor(s)`;
+                document.body.appendChild(statusMsg);
+                
+                setTimeout(() => {
+                    statusMsg.style.animation = 'fadeOut 0.3s ease';
+                    setTimeout(() => statusMsg.remove(), 300);
+                }, 3000);
+            }
+        }
+        
+        function detectFloorValue(detectedFloor) {
+            const floorMap = {
+                'Ground Floor': 'ground',
+                'First Floor': 'first',
+                'Second Floor': 'second',
+                'Third Floor': 'third',
+                'Fourth Floor': 'fourth',
+                'Basement': 'basement',
+                'Terrace/Penthouse': 'terrace'
+            };
+            return floorMap[detectedFloor] || 'ground';
+        }
+        
+        function calculateHeatLoadForRoom(roomData) {
+            const area = roomData.area;
+            const volume = area * roomData.height;
+            
+            // PROFESSIONAL U-VALUES (BTU/hr·ft²·°F) - From Excel Data Sheet
+            const uValues = {
+                exposed_brick: 0.41,      // 6" brick wall
+                insulated: 0.088,         // 2" thermocole insulation
+                concrete: 0.55,
+                lightweight: 0.35
+            };
+            
+            const ceilingUValues = {
+                flat_slab: 0.4,           // RCC slab
+                false_ceiling: 0.4,       // With ceiling
+                rcc_exposed: 0.064        // Exposed roof
+            };
+            
+            // GLASS U-VALUE
+            const glassU = 0.86;          // Professional value
+            
+            // PARTITION, FLOOR U-VALUES
+            const partitionU = 0.41;
+            const floorU = 0.4;
+            
+            // SHGC - Solar Heat Gain Coefficient (with blinds/curtains)
+            const shgcFactor = 0.25;  // Professional uses 0.25 for covered glass (vs 0.52 bare)
+            
+            // TEMPERATURE DIFFERENCES (Ahmedabad Summer conditions)
+            const deltaT_summer = 38;      // Outside 111.2°F - Inside 75°F
+            const deltaT_monsoon = 28.8;
+            
+            // Use summer conditions for conservative design
+            const dt = deltaT_summer;
+            
+            // SOLAR GAIN FACTORS by Orientation (BTU/hr·ft²) - Professional values
+            const solarFactors = {
+                north: 23,
+                south: 12,
+                east: 12,
+                west: 163,
+                northeast: 12,
+                northwest: 138,
+                southeast: 12,
+                southwest: 85,
+                horizontal: 118
+            };
+            
+            // EQUIVALENT TEMPERATURE DIFFERENCE for walls/roof (°F)
+            const eqTempDiff = {
+                north: 21,
+                south: 33,
+                east: 35,
+                west: 29,
+                northeast: 27,
+                northwest: 23,
+                southeast: 35,
+                southwest: 31,
+                roof_sun: 52,
+                roof_insulated: 52
+            };
+            
+            const uWall = uValues[roomData.wallType];
+            const uCeiling = ceilingUValues[roomData.ceilingType];
+            
+            // Calculate wall area (perimeter × height)
+            const perimeter = 2 * (roomData.length + roomData.width);
+            const wallArea = perimeter * roomData.height;
+            const netWallArea = wallArea - roomData.windowArea;
+            
+            // === 1. SOLAR GAIN THROUGH GLASS ===
+            const solarGainFactor = solarFactors[roomData.orientation];
+            const solarGain = roomData.windowArea * solarGainFactor * shgcFactor;
+            
+            // === 2. TRANSMISSION GAIN THROUGH WALLS (using equivalent temp diff) ===
+            const wallEqTD = eqTempDiff[roomData.orientation];
+            const wallTransmission = netWallArea * wallEqTD * uWall;
+            
+            // === 3. TRANSMISSION THROUGH GLASS ===
+            const glassTransmission = roomData.windowArea * dt * glassU;
+            
+            // === 4. TRANSMISSION THROUGH CEILING/FLOOR ===
+            const ceilingTransmission = area * dt * uCeiling;
+            const floorTransmission = area * dt * floorU;  // Ground floor has floor transmission
+            
+            // === 5. PARTITION TRANSMISSION (assume 30% of wall area is partition) ===
+            const partitionArea = wallArea * 0.3;
+            const partitionTransmission = partitionArea * dt * partitionU;
+            
+            // Total Sensible Transmission
+            const totalTransmission = wallTransmission + glassTransmission + 
+                                     ceilingTransmission + floorTransmission + 
+                                     partitionTransmission;
+            
+            // === 6. INFILTRATION ===
+            const infiltrationACH = 0.2;  // Times per hour
+            const infiltrationCFM = (volume * infiltrationACH) / 60;
+            const infiltrationSensible = infiltrationCFM * 1.08 * dt;
+            
+            // Moisture difference: 18.36 gr/lb (summer)
+            const moistureDiff = 18.36;
+            const infiltrationLatent = infiltrationCFM * 0.68 * moistureDiff;
+            const totalInfiltration = infiltrationSensible + infiltrationLatent;
+            
+            // === 7. FRESH AIR (Ventilation) ===
+            const freshAirCFM = roomData.occupants * 7.5;  // 7.5 CFM/person professional standard
+            const freshAirSensible = freshAirCFM * 1.08 * dt;
+            const freshAirLatent = freshAirCFM * 0.68 * moistureDiff * 0.9;  // 0.1 bypass factor
+            const totalFreshAir = freshAirSensible + freshAirLatent;
+            
+            // === 8. OCCUPANT LOADS ===
+            const occupantSensible = roomData.occupants * 285;  // Professional value
+            const occupantLatent = roomData.occupants * 165;     // Professional value
+            const occupantLoad = occupantSensible + occupantLatent;
+            
+            // === 9. LIGHTING LOAD ===
+            // Professional: 1 W/sqft × 3.413 BTU/W × 1.25 diversity factor
+            const lightingHeat = area * 1.0 * 3.413 * 1.25;
+            
+            // === 10. EQUIPMENT LOAD ===
+            const equipmentWatts = roomData.equipmentLoad * area;
+            const equipmentHeat = equipmentWatts * 3.413;
+            
+            // === ROOM SENSIBLE HEAT SUB-TOTAL ===
+            const roomSensible = solarGain + totalTransmission + infiltrationSensible + 
+                                freshAirSensible + occupantSensible + lightingHeat + equipmentHeat;
+            
+            // === ROOM LATENT HEAT SUB-TOTAL ===
+            const roomLatent = infiltrationLatent + freshAirLatent + occupantLatent;
+            
+            // === APPLY SAFETY FACTORS (+5%) ===
+            const effectiveSensible = roomSensible * 1.05;
+            const effectiveLatent = roomLatent * 1.05;
+            
+            // === OUTSIDE AIR HEAT GAIN (with 5% safety) ===
+            const outsideAirHeat = totalFreshAir * 1.05;
+            
+            // === GRAND TOTAL HEAT LOAD ===
+            const grandTotal = effectiveSensible + effectiveLatent + outsideAirHeat;
+            
+            // === TR CALCULATION ===
+            const requiredTR = (grandTotal / 12000).toFixed(2);
+            
+            // Recommended TR (round up to standard sizes)
+            const standardSizes = [0.75, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7.5, 10];
+            const recommendedTR = standardSizes.find(size => size >= parseFloat(requiredTR)) || 
+                                 Math.ceil(parseFloat(requiredTR));
+            
+            // === DEHUMIDIFIED AIR CFM (Professional calculation) ===
+            // Assuming ADP = 55°F, Inside = 75°F
+            const adp = 55;
+            const insideTemp = 75;
+            const dehumidifiedRise = (insideTemp - adp) * 0.9;  // 18°F × 0.9 = 16.2°F
+            const cfm = Math.round(effectiveSensible / (dehumidifiedRise * 1.08));
+            const cfmPerTR = (cfm / parseFloat(requiredTR)).toFixed(0);
+            
+            return {
+                floorNumber: roomData.floorNumber,
+                roomName: roomData.roomName,
+                area: area,
+                totalHeatLoad: Math.round(grandTotal),
+                totalWatts: Math.round(grandTotal / 3.412),
+                requiredTR: requiredTR,
+                recommendedTR: recommendedTR,
+                cfm: cfm,
+                cfmPerTR: cfmPerTR,
+                breakdown: {
+                    solarGain: Math.round(solarGain),
+                    wallTransmission: Math.round(wallTransmission),
+                    glassTransmission: Math.round(glassTransmission),
+                    ceilingFloorTransmission: Math.round(ceilingTransmission + floorTransmission),
+                    infiltration: Math.round(totalInfiltration),
+                    freshAir: Math.round(totalFreshAir),
+                    occupantLoad: Math.round(occupantLoad),
+                    lightingHeat: Math.round(lightingHeat),
+                    equipmentHeat: Math.round(equipmentHeat),
+                    sensibleTotal: Math.round(effectiveSensible),
+                    latentTotal: Math.round(effectiveLatent)
+                },
+                details: {
+                    length: roomData.length,
+                    width: roomData.width,
+                    height: roomData.height,
+                    occupants: roomData.occupants,
+                    wallType: roomData.wallType,
+                    ceilingType: roomData.ceilingType,
+                    glassType: roomData.glassType,
+                    orientation: roomData.orientation,
+                    windowArea: roomData.windowArea,
+                    infiltrationCFM: Math.round(infiltrationCFM),
+                    freshAirCFM: Math.round(freshAirCFM)
+                }
+            };
+        }
+        
+        // Export functionality
+        document.getElementById('exportBtn').addEventListener('click', exportReport);
+        
+        window.exportOverallReport = function() {
+            if (rooms.length === 0) return;
+            
+            // Group rooms by floor
+            const floorGroups = {};
+            rooms.forEach(room => {
+                const floor = room.floorNumber;
+                if (!floorGroups[floor]) {
+                    floorGroups[floor] = {
+                        rooms: [],
+                        totalTR: 0,
+                        totalHeatLoad: 0,
+                        totalArea: 0
+                    };
+                }
+                floorGroups[floor].rooms.push(room);
+                floorGroups[floor].totalTR += parseFloat(room.requiredTR);
+                floorGroups[floor].totalHeatLoad += room.totalHeatLoad;
+                floorGroups[floor].totalArea += room.area;
+            });
+            
+            const overallTotalTR = Object.values(floorGroups).reduce((sum, floor) => sum + floor.totalTR, 0);
+            const overallTotalHeatLoad = Object.values(floorGroups).reduce((sum, floor) => sum + floor.totalHeatLoad, 0);
+            const overallTotalArea = Object.values(floorGroups).reduce((sum, floor) => sum + floor.totalArea, 0);
+            
+            const safetyTR = overallTotalTR * 1.2;
+            const standardSizes = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20];
+            const recommendedOverallTR = standardSizes.find(size => size >= safetyTR) || Math.ceil(safetyTR);
+            
+            const floorNames = {
+                'ground': 'Ground Floor',
+                'first': 'First Floor',
+                'second': 'Second Floor',
+                'third': 'Third Floor',
+                'fourth': 'Fourth Floor',
+                'basement': 'Basement',
+                'terrace': 'Terrace/Penthouse'
+            };
+            
+            let report = `
+═══════════════════════════════════════════════════════════════
+         COMPLETE BUILDING HVAC HEAT LOAD CALCULATION
+═══════════════════════════════════════════════════════════════
+
+OVERALL BUILDING SUMMARY
+───────────────────────────────────────────────────────────────
+Total Rooms:                       ${rooms.length}
+Total Conditioned Area:            ${overallTotalArea.toFixed(0)} sq.ft
+Total Heat Load:                   ${Math.round(overallTotalHeatLoad).toLocaleString()} BTU/hr
+Total Required TR:                 ${overallTotalTR.toFixed(2)} TR
+
+RECOMMENDED SYSTEM CAPACITY
+───────────────────────────────────────────────────────────────
+Overall Building Capacity:         ${recommendedOverallTR} TR
+                                   (Includes 20% safety factor)
+
+FLOOR-WISE BREAKDOWN
+═══════════════════════════════════════════════════════════════
+`;
+            
+            Object.entries(floorGroups).forEach(([floor, data]) => {
+                const floorRecommendedTR = standardSizes.find(size => size >= data.totalTR * 1.2) || Math.ceil(data.totalTR * 1.2);
+                report += `
+${floorNames[floor] || floor}
+───────────────────────────────────────────────────────────────
+Rooms:                             ${data.rooms.length}
+Floor Area:                        ${data.totalArea.toFixed(0)} sq.ft
+Heat Load:                         ${Math.round(data.totalHeatLoad).toLocaleString()} BTU/hr
+Required TR:                       ${data.totalTR.toFixed(2)} TR
+Recommended TR:                    ${floorRecommendedTR} TR
+
+Room Details:
+`;
+                data.rooms.forEach((room, idx) => {
+                    report += `
+  ${idx + 1}. ${room.roomName}
+     Dimensions:                   ${room.details.length}' × ${room.details.width}' × ${room.details.height}'
+     Area:                         ${room.area.toFixed(1)} sq.ft
+     Heat Load:                    ${room.totalHeatLoad.toLocaleString()} BTU/hr
+     Required TR:                  ${room.requiredTR} TR
+     Recommended TR:               ${room.recommendedTR} TR
+     
+     Heat Load Breakdown:
+     - Walls & Roof:               ${room.breakdown.sensibleWalls.toLocaleString()} BTU/hr
+     - Solar Gain:                 ${room.breakdown.solarGain.toLocaleString()} BTU/hr
+     - Occupants:                  ${room.breakdown.occupantLoad.toLocaleString()} BTU/hr
+     - Lighting:                   ${room.breakdown.lightingHeat.toLocaleString()} BTU/hr
+     - Equipment:                  ${room.breakdown.equipmentHeat.toLocaleString()} BTU/hr
+     - Infiltration:               ${room.breakdown.infiltration.toLocaleString()} BTU/hr
+`;
+                });
+                report += '\n';
+            });
+            
+            report += `
+EQUIPMENT RECOMMENDATIONS
+═══════════════════════════════════════════════════════════════
+
+VRF SYSTEM (Recommended for Multi-Floor):
+- Total Outdoor Unit Capacity:     ${recommendedOverallTR} TR
+- Indoor Units:                    ${rooms.length} units (as per floor plan)
+${Object.entries(floorGroups).map(([floor, data]) => {
+    const floorRecommendedTR = standardSizes.find(size => size >= data.totalTR * 1.2) || Math.ceil(data.totalTR * 1.2);
+    return `  - ${floorNames[floor]}: ${floorRecommendedTR} TR capacity`;
+}).join('\n')}
+
+ALTERNATIVE SYSTEMS:
+- Split AC Units:                  Individual ${rooms.map(r => r.recommendedTR).join(', ')} TR units
+- Ducted System:                   ${recommendedOverallTR} TR central system with zoning
+- Chiller System:                  For buildings > 20 TR
+
+COMPLIANCE & STANDARDS
+───────────────────────────────────────────────────────────────
+- National Building Code of India (NBC) 2016
+- ISHRAE Standards
+- ECBC (Energy Conservation Building Code)
+
+NOTES
+───────────────────────────────────────────────────────────────
+1. All calculations include 20% safety factor
+2. VRF system recommended for better efficiency and zoning
+3. Consider energy-efficient equipment (5-star rated)
+4. Final design should be verified by licensed MEP consultant
+5. Actual loads may vary based on occupancy patterns
+
+Generated: ${new Date().toLocaleString()}
+═══════════════════════════════════════════════════════════════
+`;
+            
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Complete_Building_Heat_Load_Report_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+        
+        function exportReport() {
+            if (!window.currentResults) return;
+            
+            const results = window.currentResults;
+            const report = `
+HVAC HEAT LOAD CALCULATION REPORT
+═══════════════════════════════════════════════════════════════
+
+PROJECT DETAILS
+───────────────────────────────────────────────────────────────
+Room Name:           ${results.roomName}
+Dimensions:          ${results.details.length}' × ${results.details.width}' × ${results.details.height}'
+Floor Area:          ${results.area.toFixed(1)} sq.ft
+Occupants:           ${results.details.occupants}
+
+CONSTRUCTION DETAILS
+───────────────────────────────────────────────────────────────
+Wall Type:           ${results.details.wallType.replace(/_/g, ' ').toUpperCase()}
+Ceiling Type:        ${results.details.ceilingType.replace(/_/g, ' ').toUpperCase()}
+Glass Type:          ${results.details.glassType.replace(/_/g, ' ').toUpperCase()}
+
+HEAT LOAD BREAKDOWN
+───────────────────────────────────────────────────────────────
+Sensible Heat (Walls & Roof):      ${results.breakdown.sensibleWalls.toLocaleString()} BTU/hr
+Solar Heat Gain (Windows):         ${results.breakdown.solarGain.toLocaleString()} BTU/hr
+Occupant Heat Load:                ${results.breakdown.occupantLoad.toLocaleString()} BTU/hr
+Lighting Load:                     ${results.breakdown.lightingHeat.toLocaleString()} BTU/hr
+Equipment Load:                    ${results.breakdown.equipmentHeat.toLocaleString()} BTU/hr
+Infiltration & Ventilation:        ${results.breakdown.infiltration.toLocaleString()} BTU/hr
+───────────────────────────────────────────────────────────────
+TOTAL HEAT LOAD:                   ${results.totalHeatLoad.toLocaleString()} BTU/hr
+                                   ${results.totalWatts.toLocaleString()} Watts
+                                   ${results.requiredTR} TR (Required)
+
+RECOMMENDATIONS
+───────────────────────────────────────────────────────────────
+Recommended AC Capacity:           ${results.recommendedTR} TR
+                                   (Includes 20% safety factor)
+
+Standard Equipment Options:
+- ${results.recommendedTR} TR Split AC
+- ${results.recommendedTR} TR VRF System
+- ${results.recommendedTR} TR Cassette Unit
+
+COMPLIANCE
+───────────────────────────────────────────────────────────────
+This calculation is based on:
+- National Building Code of India (NBC) 2016
+- ISHRAE (Indian Society of Heating, Refrigerating and Air Conditioning Engineers) Standards
+- ECBC (Energy Conservation Building Code) Guidelines
+
+NOTES
+───────────────────────────────────────────────────────────────
+1. This is a preliminary estimate for design purposes
+2. Final HVAC design should be verified by licensed MEP consultants
+3. Actual cooling load may vary based on occupancy patterns
+4. Consider energy-efficient systems for operational cost savings
+
+Generated: ${new Date().toLocaleString()}
+═══════════════════════════════════════════════════════════════
+            `;
+            
+            // Download as text file
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Heat_Load_Report_${results.roomName.replace(/\s+/g, '_')}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Add room functionality
+        document.getElementById('addRoomBtn').addEventListener('click', () => {
+            if (window.currentResults) {
+                rooms.push(window.currentResults);
+                
+                const floorNames = {
+                    'ground': 'Ground Floor',
+                    'first': 'First Floor',
+                    'second': 'Second Floor',
+                    'third': 'Third Floor',
+                    'fourth': 'Fourth Floor',
+                    'basement': 'Basement',
+                    'terrace': 'Terrace/Penthouse'
+                };
+                
+                alert(`✅ ${window.currentResults.roomName} (${floorNames[window.currentResults.floorNumber]}) added!\n\nTotal rooms: ${rooms.length}\n\nYou can now enter details for another room.`);
+                
+                // Clear form
+                document.getElementById('roomName').value = '';
+                document.getElementById('roomLength').value = '';
+                document.getElementById('roomWidth').value = '';
+                document.getElementById('windowArea').value = '';
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // Update overall summary
+                updateOverallSummary();
+            } else {
+                alert('Please calculate heat load for current room first.');
+            }
+        });
+    </script>
+</body>
+</html>
