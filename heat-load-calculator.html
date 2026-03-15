@@ -632,11 +632,49 @@
                     <div class="form-group">
                         <label>Location/Climate Zone</label>
                         <select id="location">
-                            <option value="hot_dry">Hot & Dry (Delhi, Rajasthan)</option>
-                            <option value="warm_humid">Warm & Humid (Mumbai, Chennai)</option>
-                            <option value="composite">Composite (Bangalore, Pune)</option>
-                            <option value="cold">Cold (Shimla, Kashmir)</option>
+                            <optgroup label="Hot & Dry Climate">
+                                <option value="ahmedabad">Ahmedabad (Hot-Dry: 111°F summer)</option>
+                                <option value="delhi">Delhi (Hot-Dry: 113°F summer)</option>
+                                <option value="jaipur">Jaipur (Hot-Dry: 111°F summer)</option>
+                                <option value="rajkot">Rajkot (Hot-Dry: 111°F summer)</option>
+                                <option value="jodhpur">Jodhpur (Hot-Dry: 113°F summer)</option>
+                                <option value="nagpur">Nagpur (Hot-Dry: 113°F summer)</option>
+                            </optgroup>
+                            <optgroup label="Warm & Humid Climate">
+                                <option value="mumbai">Mumbai (Warm-Humid: 95°F summer)</option>
+                                <option value="chennai">Chennai (Warm-Humid: 100°F summer)</option>
+                                <option value="kolkata">Kolkata (Warm-Humid: 100°F summer)</option>
+                                <option value="kochi">Kochi (Warm-Humid: 91°F summer)</option>
+                                <option value="goa">Goa (Warm-Humid: 93°F summer)</option>
+                                <option value="visakhapatnam">Visakhapatnam (Warm-Humid: 97°F summer)</option>
+                            </optgroup>
+                            <optgroup label="Composite Climate">
+                                <option value="bangalore">Bangalore (Composite: 97°F summer)</option>
+                                <option value="pune">Pune (Composite: 102°F summer)</option>
+                                <option value="hyderabad">Hyderabad (Composite: 108°F summer)</option>
+                                <option value="lucknow">Lucknow (Composite: 111°F summer)</option>
+                                <option value="indore">Indore (Composite: 107°F summer)</option>
+                                <option value="bhopal">Bhopal (Composite: 108°F summer)</option>
+                            </optgroup>
+                            <optgroup label="Moderate Climate">
+                                <option value="chandigarh">Chandigarh (Moderate: 104°F summer)</option>
+                                <option value="coimbatore">Coimbatore (Moderate: 99°F summer)</option>
+                                <option value="mysore">Mysore (Moderate: 97°F summer)</option>
+                            </optgroup>
+                            <optgroup label="Cold Climate">
+                                <option value="shimla">Shimla (Cold: 77°F summer)</option>
+                                <option value="srinagar">Srinagar (Cold: 86°F summer)</option>
+                                <option value="darjeeling">Darjeeling (Cold: 68°F summer)</option>
+                            </optgroup>
+                            <optgroup label="Coastal Humid">
+                                <option value="surat">Surat (Coastal-Humid: 104°F summer)</option>
+                                <option value="jamnagar">Jamnagar (Coastal-Humid: 104°F summer)</option>
+                                <option value="mangalore">Mangalore (Coastal-Humid: 91°F summer)</option>
+                            </optgroup>
                         </select>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                            💡 Temperature shown is design DBT (Dry Bulb Temperature) for summer
+                        </div>
                     </div>
                     
                     <div class="input-group">
@@ -1514,7 +1552,7 @@
                         glassType: 'double_height', // Not used in new calc, kept for compatibility
                         windowArea: estimatedWindowArea,
                         orientation: 'south',       // Conservative assumption
-                        location: 'composite',      // Ahmedabad climate
+                        location: 'ahmedabad',      // Default to Ahmedabad climate
                         lightingLoad: 1.0,          // Professional uses 1 W/sqft
                         equipmentLoad: equipmentWatts / roomArea,  // Convert to W/sqft for formula
                         area: room.area
@@ -1562,6 +1600,53 @@
             const area = roomData.area;
             const volume = area * roomData.height;
             
+            // CITY-SPECIFIC CLIMATE DATA (from ISHRAE and professional sources)
+            const climateData = {
+                // Hot & Dry
+                ahmedabad: { outsideDBT: 111.2, insideDBT: 75, deltaT: 36.2, moistureDiff: 18.36, category: 'hot_dry' },
+                delhi: { outsideDBT: 113, insideDBT: 75, deltaT: 38, moistureDiff: 20, category: 'hot_dry' },
+                jaipur: { outsideDBT: 111, insideDBT: 75, deltaT: 36, moistureDiff: 19, category: 'hot_dry' },
+                rajkot: { outsideDBT: 111.2, insideDBT: 75, deltaT: 36.2, moistureDiff: 18.36, category: 'hot_dry' },
+                jodhpur: { outsideDBT: 113, insideDBT: 75, deltaT: 38, moistureDiff: 21, category: 'hot_dry' },
+                nagpur: { outsideDBT: 113, insideDBT: 75, deltaT: 38, moistureDiff: 22, category: 'hot_dry' },
+                
+                // Warm & Humid
+                mumbai: { outsideDBT: 95, insideDBT: 75, deltaT: 20, moistureDiff: 45, category: 'warm_humid' },
+                chennai: { outsideDBT: 100, insideDBT: 75, deltaT: 25, moistureDiff: 42, category: 'warm_humid' },
+                kolkata: { outsideDBT: 100, insideDBT: 75, deltaT: 25, moistureDiff: 48, category: 'warm_humid' },
+                kochi: { outsideDBT: 91, insideDBT: 75, deltaT: 16, moistureDiff: 50, category: 'warm_humid' },
+                goa: { outsideDBT: 93, insideDBT: 75, deltaT: 18, moistureDiff: 48, category: 'warm_humid' },
+                visakhapatnam: { outsideDBT: 97, insideDBT: 75, deltaT: 22, moistureDiff: 44, category: 'warm_humid' },
+                
+                // Composite
+                bangalore: { outsideDBT: 97, insideDBT: 75, deltaT: 22, moistureDiff: 25, category: 'composite' },
+                pune: { outsideDBT: 102, insideDBT: 75, deltaT: 27, moistureDiff: 28, category: 'composite' },
+                hyderabad: { outsideDBT: 108, insideDBT: 75, deltaT: 33, moistureDiff: 30, category: 'composite' },
+                lucknow: { outsideDBT: 111, insideDBT: 75, deltaT: 36, moistureDiff: 32, category: 'composite' },
+                indore: { outsideDBT: 107, insideDBT: 75, deltaT: 32, moistureDiff: 28, category: 'composite' },
+                bhopal: { outsideDBT: 108, insideDBT: 75, deltaT: 33, moistureDiff: 29, category: 'composite' },
+                
+                // Moderate
+                chandigarh: { outsideDBT: 104, insideDBT: 75, deltaT: 29, moistureDiff: 26, category: 'composite' },
+                coimbatore: { outsideDBT: 99, insideDBT: 75, deltaT: 24, moistureDiff: 30, category: 'composite' },
+                mysore: { outsideDBT: 97, insideDBT: 75, deltaT: 22, moistureDiff: 28, category: 'composite' },
+                
+                // Cold
+                shimla: { outsideDBT: 77, insideDBT: 72, deltaT: 5, moistureDiff: 8, category: 'cold' },
+                srinagar: { outsideDBT: 86, insideDBT: 75, deltaT: 11, moistureDiff: 12, category: 'cold' },
+                darjeeling: { outsideDBT: 68, insideDBT: 72, deltaT: -4, moistureDiff: 5, category: 'cold' },
+                
+                // Coastal Humid
+                surat: { outsideDBT: 104, insideDBT: 75, deltaT: 29, moistureDiff: 38, category: 'warm_humid' },
+                jamnagar: { outsideDBT: 104, insideDBT: 75, deltaT: 29, moistureDiff: 36, category: 'warm_humid' },
+                mangalore: { outsideDBT: 91, insideDBT: 75, deltaT: 16, moistureDiff: 52, category: 'warm_humid' }
+            };
+            
+            // Get climate data for selected location
+            const climate = climateData[roomData.location] || climateData.ahmedabad;
+            const dt = climate.deltaT;
+            const moistureDiff = climate.moistureDiff;
+            
             // PROFESSIONAL U-VALUES (BTU/hr·ft²·°F) - From Excel Data Sheet
             const uValues = {
                 exposed_brick: 0.41,      // 6" brick wall
@@ -1585,13 +1670,6 @@
             
             // SHGC - Solar Heat Gain Coefficient (with blinds/curtains)
             const shgcFactor = 0.25;  // Professional uses 0.25 for covered glass (vs 0.52 bare)
-            
-            // TEMPERATURE DIFFERENCES (Ahmedabad Summer conditions)
-            const deltaT_summer = 38;      // Outside 111.2°F - Inside 75°F
-            const deltaT_monsoon = 28.8;
-            
-            // Use summer conditions for conservative design
-            const dt = deltaT_summer;
             
             // SOLAR GAIN FACTORS by Orientation (BTU/hr·ft²) - Professional values
             const solarFactors = {
@@ -1657,8 +1735,7 @@
             const infiltrationCFM = (volume * infiltrationACH) / 60;
             const infiltrationSensible = infiltrationCFM * 1.08 * dt;
             
-            // Moisture difference: 18.36 gr/lb (summer)
-            const moistureDiff = 18.36;
+            // Use city-specific moisture difference
             const infiltrationLatent = infiltrationCFM * 0.68 * moistureDiff;
             const totalInfiltration = infiltrationSensible + infiltrationLatent;
             
@@ -1709,7 +1786,7 @@
             // === DEHUMIDIFIED AIR CFM (Professional calculation) ===
             // Assuming ADP = 55°F, Inside = 75°F
             const adp = 55;
-            const insideTemp = 75;
+            const insideTemp = climate.insideDBT;
             const dehumidifiedRise = (insideTemp - adp) * 0.9;  // 18°F × 0.9 = 16.2°F
             const cfm = Math.round(effectiveSensible / (dehumidifiedRise * 1.08));
             const cfmPerTR = (cfm / parseFloat(requiredTR)).toFixed(0);
@@ -1724,6 +1801,12 @@
                 recommendedTR: recommendedTR,
                 cfm: cfm,
                 cfmPerTR: cfmPerTR,
+                climateInfo: {
+                    location: roomData.location,
+                    outsideDBT: climate.outsideDBT,
+                    insideDBT: climate.insideDBT,
+                    deltaT: dt
+                },
                 breakdown: {
                     solarGain: Math.round(solarGain),
                     wallTransmission: Math.round(wallTransmission),
@@ -1799,6 +1882,14 @@
 ═══════════════════════════════════════════════════════════════
          COMPLETE BUILDING HVAC HEAT LOAD CALCULATION
 ═══════════════════════════════════════════════════════════════
+
+DESIGN CONDITIONS
+───────────────────────────────────────────────────────────────
+Location:            ${rooms[0]?.climateInfo ? 
+    (rooms[0].climateInfo.location.charAt(0).toUpperCase() + rooms[0].climateInfo.location.slice(1)) : 'Ahmedabad'}
+Outside DBT:         ${rooms[0]?.climateInfo?.outsideDBT || 111.2}°F (Summer Design)
+Inside DBT:          ${rooms[0]?.climateInfo?.insideDBT || 75}°F, 55% RH
+Standards:           NBC 2016, ISHRAE, ECBC, ASHRAE
 
 OVERALL BUILDING SUMMARY
 ───────────────────────────────────────────────────────────────
@@ -1898,6 +1989,22 @@ Generated: ${new Date().toLocaleString()}
             if (!window.currentResults) return;
             
             const results = window.currentResults;
+            
+            // City name mapping
+            const cityNames = {
+                ahmedabad: 'Ahmedabad', delhi: 'Delhi', jaipur: 'Jaipur', rajkot: 'Rajkot',
+                jodhpur: 'Jodhpur', nagpur: 'Nagpur', mumbai: 'Mumbai', chennai: 'Chennai',
+                kolkata: 'Kolkata', kochi: 'Kochi', goa: 'Goa', visakhapatnam: 'Visakhapatnam',
+                bangalore: 'Bangalore', pune: 'Pune', hyderabad: 'Hyderabad', lucknow: 'Lucknow',
+                indore: 'Indore', bhopal: 'Bhopal', chandigarh: 'Chandigarh', coimbatore: 'Coimbatore',
+                mysore: 'Mysore', shimla: 'Shimla', srinagar: 'Srinagar', darjeeling: 'Darjeeling',
+                surat: 'Surat', jamnagar: 'Jamnagar', mangalore: 'Mangalore'
+            };
+            
+            const cityName = cityNames[results.climateInfo?.location] || 'Ahmedabad';
+            const outsideTemp = results.climateInfo?.outsideDBT || 111.2;
+            const insideTemp = results.climateInfo?.insideDBT || 75;
+            
             const report = `
 HVAC HEAT LOAD CALCULATION REPORT
 ═══════════════════════════════════════════════════════════════
@@ -1909,48 +2016,84 @@ Dimensions:          ${results.details.length}' × ${results.details.width}' × 
 Floor Area:          ${results.area.toFixed(1)} sq.ft
 Occupants:           ${results.details.occupants}
 
+DESIGN CONDITIONS
+───────────────────────────────────────────────────────────────
+Location:            ${cityName}
+Outside DBT:         ${outsideTemp}°F (Summer Design)
+Inside DBT:          ${insideTemp}°F
+Inside RH:           55%
+Temperature Diff:    ${results.climateInfo?.deltaT || 36}°F
+
 CONSTRUCTION DETAILS
 ───────────────────────────────────────────────────────────────
-Wall Type:           ${results.details.wallType.replace(/_/g, ' ').toUpperCase()}
-Ceiling Type:        ${results.details.ceilingType.replace(/_/g, ' ').toUpperCase()}
-Glass Type:          ${results.details.glassType.replace(/_/g, ' ').toUpperCase()}
+Wall Type:           ${results.details.wallType.replace(/_/g, ' ').toUpperCase()} (U=0.41)
+Ceiling Type:        ${results.details.ceilingType.replace(/_/g, ' ').toUpperCase()} (U=0.4)
+Window Area:         ${results.details.windowArea.toFixed(1)} sq.ft
+Glass U-Value:       0.86 BTU/hr·sqft·°F
+Glass SHGC:          0.25 (with blinds/curtains)
+Orientation:         ${results.details.orientation.toUpperCase()}
 
-HEAT LOAD BREAKDOWN
+HEAT LOAD BREAKDOWN (Professional Methodology)
 ───────────────────────────────────────────────────────────────
-Sensible Heat (Walls & Roof):      ${results.breakdown.sensibleWalls.toLocaleString()} BTU/hr
-Solar Heat Gain (Windows):         ${results.breakdown.solarGain.toLocaleString()} BTU/hr
-Occupant Heat Load:                ${results.breakdown.occupantLoad.toLocaleString()} BTU/hr
-Lighting Load:                     ${results.breakdown.lightingHeat.toLocaleString()} BTU/hr
-Equipment Load:                    ${results.breakdown.equipmentHeat.toLocaleString()} BTU/hr
-Infiltration & Ventilation:        ${results.breakdown.infiltration.toLocaleString()} BTU/hr
+Solar Gain (Glass):                ${results.breakdown.solarGain.toLocaleString()} BTU/hr
+Wall Transmission:                 ${results.breakdown.wallTransmission.toLocaleString()} BTU/hr
+Glass Transmission:                ${results.breakdown.glassTransmission.toLocaleString()} BTU/hr
+Ceiling/Floor Transmission:        ${results.breakdown.ceilingFloorTransmission.toLocaleString()} BTU/hr
+Infiltration (0.2 ACH):           ${results.breakdown.infiltration.toLocaleString()} BTU/hr
+Fresh Air (7.5 CFM/person):       ${results.breakdown.freshAir.toLocaleString()} BTU/hr
+Occupants (${results.details.occupants} × 450 BTU/hr):     ${results.breakdown.occupantLoad.toLocaleString()} BTU/hr
+Lighting (1 W/sqft × 1.25):       ${results.breakdown.lightingHeat.toLocaleString()} BTU/hr
+Equipment:                         ${results.breakdown.equipmentHeat.toLocaleString()} BTU/hr
 ───────────────────────────────────────────────────────────────
-TOTAL HEAT LOAD:                   ${results.totalHeatLoad.toLocaleString()} BTU/hr
+TOTAL SENSIBLE (with 5% safety): ${results.breakdown.sensibleTotal.toLocaleString()} BTU/hr
+TOTAL LATENT (with 5% safety):   ${results.breakdown.latentTotal.toLocaleString()} BTU/hr
+───────────────────────────────────────────────────────────────
+GRAND TOTAL HEAT LOAD:            ${results.totalHeatLoad.toLocaleString()} BTU/hr
                                    ${results.totalWatts.toLocaleString()} Watts
                                    ${results.requiredTR} TR (Required)
+
+AIR FLOW REQUIREMENTS
+───────────────────────────────────────────────────────────────
+Dehumidified CFM:                  ${results.cfm} CFM
+CFM per TR Ratio:                  ${results.cfmPerTR} CFM/TR
+Infiltration CFM:                  ${results.details.infiltrationCFM} CFM
+Fresh Air CFM:                     ${results.details.freshAirCFM} CFM
 
 RECOMMENDATIONS
 ───────────────────────────────────────────────────────────────
 Recommended AC Capacity:           ${results.recommendedTR} TR
-                                   (Includes 20% safety factor)
+                                   (Rounded to next standard size)
 
 Standard Equipment Options:
-- ${results.recommendedTR} TR Split AC
-- ${results.recommendedTR} TR VRF System
-- ${results.recommendedTR} TR Cassette Unit
+- ${results.recommendedTR} TR Split AC (Inverter recommended)
+- ${results.recommendedTR} TR VRF Indoor Unit
+- ${results.recommendedTR} TR Cassette/Concealed Duct Unit
 
-COMPLIANCE
+COMPLIANCE & STANDARDS
 ───────────────────────────────────────────────────────────────
 This calculation is based on:
-- National Building Code of India (NBC) 2016
-- ISHRAE (Indian Society of Heating, Refrigerating and Air Conditioning Engineers) Standards
-- ECBC (Energy Conservation Building Code) Guidelines
+✓ National Building Code of India (NBC) 2016
+✓ ISHRAE Standards (Indian Society of HVAC&R Engineers)
+✓ ECBC (Energy Conservation Building Code) Guidelines
+✓ ASHRAE Fundamentals (Equivalent Temperature Difference Method)
+
+Methodology:
+- Professional MEP consultant-grade calculations
+- City-specific climate data (${cityName})
+- Separate sensible/latent heat analysis
+- Component-wise 5% safety factors
+- Fresh air per ASHRAE 62.1 (7.5 CFM/person minimum)
 
 NOTES
 ───────────────────────────────────────────────────────────────
-1. This is a preliminary estimate for design purposes
+1. This is a professional-grade estimate for design purposes
 2. Final HVAC design should be verified by licensed MEP consultants
-3. Actual cooling load may vary based on occupancy patterns
-4. Consider energy-efficient systems for operational cost savings
+3. Actual cooling load may vary based on:
+   - Occupancy patterns and usage hours
+   - Equipment diversity factors
+   - Solar shading devices effectiveness
+4. Consider energy-efficient systems (5-star rated) for operational cost savings
+5. Proper insulation and building envelope sealing reduces loads by 15-25%
 
 Generated: ${new Date().toLocaleString()}
 ═══════════════════════════════════════════════════════════════
@@ -1961,7 +2104,7 @@ Generated: ${new Date().toLocaleString()}
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Heat_Load_Report_${results.roomName.replace(/\s+/g, '_')}.txt`;
+            a.download = `Heat_Load_Report_${results.roomName.replace(/\s+/g, '_')}_${cityName}.txt`;
             a.click();
             URL.revokeObjectURL(url);
         }
